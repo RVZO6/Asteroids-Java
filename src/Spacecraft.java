@@ -7,6 +7,8 @@ public class Spacecraft extends VectorSprite
     //set a fireRate for a standard ship (in clock cycles)
     public int fireRate = 25;
     public int lives = 3;
+    public int multishotLevel = 0;
+    public double totalMultishotAngle = 90;
 
     //Constructor
     public Spacecraft()
@@ -22,6 +24,9 @@ public class Spacecraft extends VectorSprite
 
         xPosition = Game.WIDTH/2;
         yPosition = Game.HEIGHT/2;
+
+        // convert from degrees to radians
+        totalMultishotAngle = Math.toRadians(totalMultishotAngle);
     }
 
     //move player forward at an angle
@@ -52,11 +57,18 @@ public class Spacecraft extends VectorSprite
         //if the ship is active in the game AND the counter has reached the fireRate cycle
         if (active && counter >= fireRate)
         {
+            int multishotDivisions = 2 + multishotLevel * 2;
             counter = 0; //reset counter
             //fire a new bullet from the first vertex on thex polygon shape
-            Bullet b = new Bullet(drawShape.xpoints[0],drawShape.ypoints[0], angle);
+            //Bullet b = new Bullet(drawShape.xpoints[0], drawShape.ypoints[0], angle);
             //we add this new bullet to the bulletList
-            bulletList.add(b);
+            //bulletList.add(b);
+            for (int i = 0; i <= multishotDivisions; i++) {
+                Bullet c = new Bullet(drawShape.xpoints[0], drawShape.ypoints[0], angle + totalMultishotAngle/2 - (totalMultishotAngle/multishotDivisions * i));
+                bulletList.add(c);
+            }
+
+            //use loop to add bullets starting from max angle to least angle at spacing defined by bullet level (odd numbers probably)
         }
     }
 

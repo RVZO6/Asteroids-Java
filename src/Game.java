@@ -4,9 +4,11 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import javax.swing.plaf.basic.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 
 
-public class Game extends JFrame implements KeyListener, ActionListener
+public class Game extends JFrame implements KeyListener, ActionListener, MouseMotionListener
 {
     //These variables will be universal (static) to all Game objects we make
     //they are also unchangeable (final) and therefore we capitalize the names
@@ -29,14 +31,14 @@ public class Game extends JFrame implements KeyListener, ActionListener
     //determine number of levels and which one we're currently on
     public int currentLevel, maxLevels = 10;
     //a timer for how long before more asteroids spawn in and the duration to wait
-    public int asteroidSpawnTimer, asteroidSpawnDuration = 500;
+    public int asteroidSpawnTimer, asteroidSpawnDuration = 100;
     //Sound Effects
     public Sound laserSfx, shipHitSfx, shipMoveSfx;
     public Sound asteroidHitSfx, collectSfx;
     ///
 
     //Game States
-    public boolean gameStart, gameOver, gamePaused;
+    public boolean gameStart, gameOver, gamePaused, mouseAiming;
 
     //fix something known as key Locking, when only one key is recognized at a time
     public boolean leftKey, rightKey, forwardKey, backwardKey, shootKey;
@@ -46,9 +48,13 @@ public class Game extends JFrame implements KeyListener, ActionListener
     // { {x1, y1}, {x2, y2}, {x3, y3} }
     public static int[][] defaultShipShape = new int[][] { {15, 0}, {-10, 10}, {-10, -10} };
 
+    //mouseX and mouseY for aligning ship with mouse (optionally)
+    private int mouseX, mouseY;
+
     //Constructor - builds the object from a recipe
     public Game()
     {
+        this.addMouseMotionListener(this);
         //make it appear to the screen
         setVisible(true);
         //set the size using the variables made above
@@ -88,6 +94,7 @@ public class Game extends JFrame implements KeyListener, ActionListener
     //initialize or start the game!
     public void init()
     {
+        mouseAiming = false;
         currentLevel = 0;
         asteroidSpawnTimer = 0;
         gamePaused = false;
@@ -346,6 +353,9 @@ public class Game extends JFrame implements KeyListener, ActionListener
         {
             shootKey = true;
         }
+        if (e.getKeyCode() == KeyEvent.VK_6){
+            mouseAiming = !mouseAiming;
+        }
 
 
         if(gamePaused)
@@ -371,6 +381,14 @@ public class Game extends JFrame implements KeyListener, ActionListener
                 shipCollectionRadius += 100;
                 gamePaused = false;
                 experienceBar.setValue(0);
+            }
+            else if (e.getKeyCode() == KeyEvent.VK_4)
+            {
+                // todo - up shotgun level
+                ship.multishotLevel++;
+                gamePaused = false;
+                experienceBar.setValue(0);
+
             }
         }
 
@@ -450,6 +468,23 @@ public class Game extends JFrame implements KeyListener, ActionListener
         //after all asteroids have been checked, none are near the spawn!
         return true;
     }
+
+    @Override
+    public void mouseMoved(MouseEvent e){
+        mouseX = e.getX();
+        mouseY = e.getY();
+        double dx = mouseX - ship.xPosition;
+        double dy = mouseY - ship.yPosition;
+        if (mouseAiming == true){
+            ship.angle = Math.atan2(dy, dx);
+        }
+
+    }
+    @Override
+    public void mouseDragged(MouseEvent e) {
+        // Not used, but required by the interface
+    }
+
     public void removeObjects()
     {
         //go through every asteroid

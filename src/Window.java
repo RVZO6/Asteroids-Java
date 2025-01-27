@@ -80,6 +80,7 @@ public class Window extends JPanel
             g.drawString("Asteroids Left: " + game.asteroidList.size(),
                     Game.WIDTH-150, 50);
             g.drawString("Level: " + game.currentLevel, Game.WIDTH/2, 50);
+            g.drawString("Press 6 to Toggle Mouse Aiming", 25, Game.HEIGHT - 25);
             //while asteroids are spawning, let the player know to prepare
             if (game.asteroidList.isEmpty())
             {
@@ -120,6 +121,8 @@ public class Window extends JPanel
             g.drawString("1: Extra Lives", 50, Game.HEIGHT/2+120);
             g.drawString("2: Fire Rate", 300, Game.HEIGHT/2+120);
             g.drawString("3: Collection Radius", 550, Game.HEIGHT/2+120);
+            g.drawString("4: Multishot", 800, Game.HEIGHT/2+120);
+
         }
         //if game is over, determine if won or lost
         else if (game.gameStart && game.gameOver && !game.gamePaused)
