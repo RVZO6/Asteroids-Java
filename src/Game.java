@@ -25,7 +25,7 @@ public class Game extends JFrame implements KeyListener, ActionListener, MouseMo
     public ArrayList<ExperienceOrb> expOrbList;
     public Spacecraft ship;
     public int shipLevel;
-    public int shipRespawnTime = 50, respawnSafeRadius = 100;
+    public int shipRespawnTime = 50, respawnSafeRadius = 100, respawnInvulnerabilityTime = 200;
     public int shipCollectionRadius = 100;
     public JProgressBar experienceBar;
     //determine number of levels and which one we're currently on
@@ -38,7 +38,9 @@ public class Game extends JFrame implements KeyListener, ActionListener, MouseMo
     ///
 
     //Game States
-    public boolean gameStart, gameOver, gamePaused, mouseAiming;
+    public boolean gameStart, gameOver, gamePaused, mouseAiming, invulnerability;
+
+    private int invulnerabilityCounter = 15;
 
     //fix something known as key Locking, when only one key is recognized at a time
     public boolean leftKey, rightKey, forwardKey, backwardKey, shootKey;
@@ -63,7 +65,7 @@ public class Game extends JFrame implements KeyListener, ActionListener, MouseMo
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         //prevent resizing the window
         setResizable(false);
-        setTitle("Asteroids - By RP4K");
+        setTitle("Asteroids");
         //create the window instance object for this game (this is the game!)
         panel = new Window(this);
         //add this window panel to game's Jframe (null is for window constraints)
@@ -80,6 +82,7 @@ public class Game extends JFrame implements KeyListener, ActionListener, MouseMo
         experienceBar = new JProgressBar(0, 1000);
         experienceBar.setVisible(false);
 
+
         //sounds
         laserSfx = new Sound("./src/Sounds/laser79.wav");
         shipHitSfx = new Sound("./src/Sounds/explode0.wav");
@@ -94,6 +97,7 @@ public class Game extends JFrame implements KeyListener, ActionListener, MouseMo
     //initialize or start the game!
     public void init()
     {
+        invulnerability = false;
         mouseAiming = false;
         currentLevel = 0;
         asteroidSpawnTimer = 0;
@@ -184,6 +188,13 @@ public class Game extends JFrame implements KeyListener, ActionListener, MouseMo
                 gamePaused = true;
             }
         }
+        if (invulnerability) {
+            invulnerabilityCounter--;
+            if (invulnerabilityCounter == 0) {
+                invulnerabilityCounter = 15;
+                invulnerability = false;
+            }
+        }
     }
 
     public void collectExpOrbs() {
@@ -222,47 +233,43 @@ public class Game extends JFrame implements KeyListener, ActionListener, MouseMo
 
     public void checkCollisions()
     {
-        //go through all asteroids
-        for (int i = 0; i < asteroidList.size(); i++)
-        {
-            //get one asteroid at a time and temporarily call it "rock"
-            Asteroid rock = asteroidList.get(i);
-            // see if ship collides with any of them while both ship and "rock" are active
-            if (ship.active && rock.active && ship.collidesWith(rock))
-            {
-                ship.hit();
-                makeDebris(ship.xPosition, ship.yPosition);
-                shipHitSfx.stop();
-                shipHitSfx.play();
+        if (!invulnerability) {
+            //go through all asteroids
+            for (int i = 0; i < asteroidList.size(); i++) {
+                //get one asteroid at a time and temporarily call it "rock"
+                Asteroid rock = asteroidList.get(i);
+                // see if ship collides with any of them while both ship and "rock" are active
+                if (ship.active && rock.active && ship.collidesWith(rock)) {
+                    ship.hit();
+                    makeDebris(ship.xPosition, ship.yPosition);
+                    shipHitSfx.stop();
+                    shipHitSfx.play();
 
-                if (ship.lives == 0)
-                {
-                    gameOver = true;
+                    if (ship.lives == 0) {
+                        gameOver = true;
+                    }
                 }
-            }
-            //NOTE we use j instead of i as that letter is used in the above for loop
-            //go through all bullets in bulletList
-            for (int j = 0; j < bulletList.size(); j++)
-            {
-                //get one bullet from the list and temporarily call it "b"
-                Bullet b = bulletList.get(j);
-                if(b.active && rock.active && b.collidesWith(rock))
-                {
-                    b.active = false; //both bullet and rock are no longer active in game
-                    rock.active = false;
-                    //destroy rock into smaller asteroids, they get added to list
-                    rock.destroy(asteroidList);
-                    makeDebris(rock.xPosition, rock.yPosition);
-                    asteroidHitSfx.stop();
-                    asteroidHitSfx.play();
-                    //spawn an experience orb from the asteroid to collect
-                    expOrbList.add(new ExperienceOrb
-                            (rock.xPosition, rock.yPosition, rock.size));
+                //NOTE we use j instead of i as that letter is used in the above for loop
+                //go through all bullets in bulletList
+                for (int j = 0; j < bulletList.size(); j++) {
+                    //get one bullet from the list and temporarily call it "b"
+                    Bullet b = bulletList.get(j);
+                    if (b.active && rock.active && b.collidesWith(rock)) {
+                        b.active = false; //both bullet and rock are no longer active in game
+                        rock.active = false;
+                        //destroy rock into smaller asteroids, they get added to list
+                        rock.destroy(asteroidList);
+                        makeDebris(rock.xPosition, rock.yPosition);
+                        asteroidHitSfx.stop();
+                        asteroidHitSfx.play();
+                        //spawn an experience orb from the asteroid to collect
+                        expOrbList.add(new ExperienceOrb
+                                (rock.xPosition, rock.yPosition, rock.size));
 
+                    }
                 }
             }
         }
-
         //go through all experience orbs and see if they collide with player ship
         for (int i = 0; i < expOrbList.size(); i++)
         {
@@ -445,6 +452,8 @@ public class Game extends JFrame implements KeyListener, ActionListener, MouseMo
         if (ship.active == false && ship.counter > shipRespawnTime && isRespawnSafe())
         {
             ship.reset(Game.WIDTH/2, Game.HEIGHT/2);
+            invulnerability = true;
+
         }
     }
     public boolean isRespawnSafe()
