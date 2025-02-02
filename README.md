@@ -49,3 +49,8 @@ rotatedY = x * sin(angle) + y * cos(angle);
 - Object-Oriented Programming
 - Matrices
 
+## Pictures:
+![Get Ready.png](Get%20Ready.png)
+![Gameplay.png](Gameplay.png)
+![Upgrade.png](Upgrade.png)
+![Game Over.png](Game%20Over.png)
